@@ -1,3 +1,14 @@
+# docker-usage
+```
+docker run --name dolphinscheduler -d -p 8888:8888 gary0416/dolphinscheduler:1.1.0
+```
+http://localhost:8888/
+
+username: admin
+
+password: escheduler123
+
+
 Easy Scheduler
 ============
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
