@@ -51,6 +51,7 @@ RUN echo "deb http://cn.archive.ubuntu.com/ubuntu/ xenial main restricted univer
     apt-get update && \
     apt-get -y install mysql-server-5.7 && \
     apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
     mkdir -p /var/lib/mysql && \
     mkdir -p /var/run/mysqld && \
     mkdir -p /var/log/mysql && \
@@ -70,44 +71,32 @@ RUN apt-get update && \
   echo "\ndaemon off;" >> /etc/nginx/nginx.conf && \
   chown -R www-data:www-data /var/lib/nginx
 
-#7,下载escheduler
+#7,下载escheduler并编译
 RUN cd /opt && \
     wget https://github.com/gary0416/incubator-dolphinscheduler/archive/${version}.tar.gz && \
     tar -zxvf ${version}.tar.gz && \
     mv incubator-dolphinscheduler-${version} easyscheduler_source && \
-    rm -rf ./${version}.tar.gz
-
-#8,后端编译
-RUN cd /opt/easyscheduler_source && \
+    rm -rf ./${version}.tar.gz && \
+    cd /opt/easyscheduler_source && \
     mvn -U clean package assembly:assembly -Dmaven.test.skip=true && \
-    rm -rf /root/.m2
-
-#9,前端编译
-RUN chmod -R 777 /opt/easyscheduler_source/escheduler-ui && \
+    rm -rf /root/.m2 && \
+    chmod -R 777 /opt/easyscheduler_source/escheduler-ui && \
     cd /opt/easyscheduler_source/escheduler-ui && \
     rm -rf /opt/easyscheduler_source/escheduler-ui/node_modules && \
     npm install node-sass --unsafe-perm && \
     npm install && \
     npm run build && \
     npm cache clean -f && \
-    mv /opt/easyscheduler_source/escheduler-ui/dist /opt/escheduler-ui
-
-#10,修改escheduler配置文件
-#后端配置
-RUN mkdir -p /opt/escheduler && \
+    mv /opt/easyscheduler_source/escheduler-ui/dist /opt/escheduler-ui && \
+    mkdir -p /opt/escheduler && \
     tar -zxvf /opt/easyscheduler_source/target/escheduler-${version}.tar.gz -C /opt/escheduler && \
     rm -rf /opt/escheduler/conf && \
     rm -rf /opt/easyscheduler_source
+    
 ADD ./conf/escheduler/conf /opt/escheduler/conf
-#前端nginx配置
 ADD ./conf/nginx/default.conf /etc/nginx/conf.d
 
-#11,开放端口
-EXPOSE 2181 2888 3888 3306 80 12345 8888
-
-COPY ./startup.sh /root/startup.sh
-
-#12,修改权限和设置软连
+# 修改权限和设置软连
 RUN chmod +x /root/startup.sh && \
   chmod +x /opt/escheduler/script/create_escheduler.sh && \
   chmod +x /opt/zookeeper/bin/zkServer.sh && \
@@ -115,5 +104,10 @@ RUN chmod +x /root/startup.sh && \
   rm -rf /bin/sh && \
   ln -s /bin/bash /bin/sh && \
   mkdir -p /tmp/xls
+
+# 开放端口
+EXPOSE 2181 2888 3888 3306 80 12345 8888
+
+COPY ./startup.sh /root/startup.sh
 
 ENTRYPOINT ["/root/startup.sh"]
