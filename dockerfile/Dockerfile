@@ -95,6 +95,7 @@ RUN cd /opt && \
     
 ADD ./conf/escheduler/conf /opt/escheduler/conf
 ADD ./conf/nginx/default.conf /etc/nginx/conf.d
+ADD ./startup.sh /root/startup.sh
 
 # 修改权限和设置软连
 RUN chmod +x /root/startup.sh && \
@@ -107,7 +108,5 @@ RUN chmod +x /root/startup.sh && \
 
 # 开放端口
 EXPOSE 2181 2888 3888 3306 80 12345 8888
-
-COPY ./startup.sh /root/startup.sh
 
 ENTRYPOINT ["/root/startup.sh"]
