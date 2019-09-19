@@ -1,4 +1,10 @@
-# docker-usage
+DolphinScheduler (Easy Scheduler) all-in-one
+
+optimized dockerfile (offical image 1.6GB, this image 570MB, by removing src and so on).
+
+This repo is archived and will be splited into multiple images in the future.
+
+Usages:
 ```
 docker run --name dolphinscheduler -d -p 8888:8888 gary0416/dolphinscheduler:1.1.0
 ```
