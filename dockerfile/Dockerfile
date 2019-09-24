@@ -1,21 +1,22 @@
 FROM ubuntu:18.04
 
-MAINTAINER journey "825193156@qq.com"
-
 ENV LANG=C.UTF-8
+ENV DEBIAN_FRONTEND noninteractive
+
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 ENV ZK_HOME=/opt/zookeeper
 ENV MAVEN_HOME=/opt/maven
 ENV NODE_HOME=/opt/node
 ENV PATH $JAVA_HOME/bin:$PATH:$ZK_HOME/bin:$MAVEN_HOME/bin:$NODE_HOME/bin
 
-ENV version=1.1.0
-
 #1,安装jdk,sudo,python,vim,ping和ssh
 RUN apt-get update && \
-    apt-get -y install wget openjdk-8-jdk sudo python vim iputils-ping net-tools openssh-server python-pip && \
+    apt-get -y install tzdata wget openjdk-8-jdk sudo python vim iputils-ping net-tools openssh-server python-pip netcat-openbsd && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean && \
+    echo "Asia/Shanghai" > /etc/timezone && \
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata && \
     pip install kazoo
 
 #2,安装ZK
@@ -39,7 +40,7 @@ RUN cd /opt && \
 
 #4,安装node
 RUN cd /opt && \
-    wget https://nodejs.org/download/release/v8.9.4/node-v8.9.4-linux-x64.tar.gz && \
+    wget https://nodejs.org/dist/v8.9.4/node-v8.9.4-linux-x64.tar.gz && \
     tar -zxvf node-v8.9.4-linux-x64.tar.gz && \
     mv node-v8.9.4-linux-x64 node && \
     rm -rf ./node-v8.9.4-*tar.gz
@@ -72,6 +73,8 @@ RUN apt-get update && \
   chown -R www-data:www-data /var/lib/nginx
 
 #7,下载escheduler并编译
+ENV version=1.1.0
+
 RUN cd /opt && \
     wget https://github.com/gary0416/incubator-dolphinscheduler/archive/${version}.tar.gz && \
     tar -zxvf ${version}.tar.gz && \
