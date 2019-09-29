@@ -1,15 +1,26 @@
 #! /bin/bash
 
 set -e
+
+# 4g is too much for testing env on a single node
+sed -i 's/-Xms4g/-Xms2g/g' /opt/escheduler/bin/escheduler-daemon.sh
+#======================================================================
+# code is still 1.1.0,but db commited. roll back
+echo "1.1.0" > /opt/escheduler/sql/soft_version
+rm -rf /opt/escheduler/sql/create/release-1.2.0_schema
+rm -rf /opt/escheduler/sql/upgrade/1.2.0_schema
+#======================================================================
+
+
 if [ `netstat -anop|grep mysql|wc -l` -gt 0 ];then
-                echo "MySQL is Running."
+    echo "MySQL is Running."
 else
 	MYSQL_ROOT_PWD="root@123"
         ESZ_DB="escheduler"
 	echo "启动mysql服务"
 	chown -R mysql:mysql /var/lib/mysql /var/run/mysqld
 	find /var/lib/mysql -type f -exec touch {} \; && service mysql restart $ sleep 10
-	if [ ! -f /nohup.out ];then
+	if [ ! -f /mysql_imported.log ];then
 		echo "设置mysql密码"
 		mysql --user=root --password=root -e "UPDATE mysql.user set authentication_string=password('$MYSQL_ROOT_PWD') where user='root'; FLUSH PRIVILEGES;"
 
@@ -18,32 +29,41 @@ else
 		echo "创建escheduler数据库"
 		mysql --user=root --password=$MYSQL_ROOT_PWD -e "CREATE DATABASE IF NOT EXISTS \`$ESZ_DB\` CHARACTER SET utf8 COLLATE utf8_general_ci; FLUSH PRIVILEGES;"
 		echo "导入mysql数据"
-		nohup /opt/escheduler/script/create_escheduler.sh &
-		sleep 90
+		/opt/escheduler/script/create-escheduler.sh
+		touch /mysql_imported.log
 	fi
-	
+
 	if [ `mysql --user=root --password=$MYSQL_ROOT_PWD -s -r -e  "SELECT count(TABLE_NAME) FROM information_schema.TABLES WHERE TABLE_SCHEMA='escheduler';" | grep -v count` -eq 38 ];then
 		echo "\`$ESZ_DB\` 表个数正确"
 	else
 		echo "\`$ESZ_DB\` 表个数不正确"
 		mysql --user=root --password=$MYSQL_ROOT_PWD  -e "DROP DATABASE \`$ESZ_DB\`;"
 		echo "创建escheduler数据库"
-                mysql --user=root --password=$MYSQL_ROOT_PWD -e "CREATE DATABASE IF NOT EXISTS \`$ESZ_DB\` CHARACTER SET utf8 COLLATE utf8_general_ci; FLUSH PRIVILEGES;"
-                echo "导入mysql数据"
-                nohup /opt/escheduler/script/create_escheduler.sh &
-                sleep 90
+    mysql --user=root --password=$MYSQL_ROOT_PWD -e "CREATE DATABASE IF NOT EXISTS \`$ESZ_DB\` CHARACTER SET utf8 COLLATE utf8_general_ci; FLUSH PRIVILEGES;"
+    echo "导入mysql数据"
+    /opt/escheduler/script/create-escheduler.sh
+    touch /mysql_imported.log
 	fi
 fi
 
 /opt/zookeeper/bin/zkServer.sh restart 
 
-sleep 90
+# replace sleep 90 by nc
+set +e
+while true
+do
+    echo "waiting zk startup..."
+    sleep 1s
+    echo "ruok" | nc 127.0.0.1 2181
+    if [ $? == 0 ] ; then
+        break
+    fi
+done
+set -e
 
 echo "启动api-server"
 /opt/escheduler/bin/escheduler-daemon.sh stop api-server
 /opt/escheduler/bin/escheduler-daemon.sh start api-server
-
-
 
 echo "启动master-server"
 /opt/escheduler/bin/escheduler-daemon.sh stop master-server
