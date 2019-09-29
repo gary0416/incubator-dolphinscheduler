@@ -95,8 +95,15 @@ public class SparkTask extends AbstractYarnTask {
     // other parameters
     args.addAll(SparkArgsUtils.buildArgs(sparkParameters));
 
+    // combining local and global parameters
+    Map<String, Property> paramsMap = ParamUtils.convert(taskProps.getUserDefParamsMap(),
+            taskProps.getDefinedParams(),
+            sparkParameters.getLocalParametersMap(),
+            processInstance.getCmdTypeIfComplement(),
+            processInstance.getScheduleTime());
+
     String command = ParameterUtils
-            .convertParameterPlaceholders(String.join(" ", args), taskProps.getDefinedParams());
+            .convertParameterPlaceholders(String.join(" ", args), ParamUtils.convert(paramsMap));
 
     logger.info("spark task command : {}", command);
 
