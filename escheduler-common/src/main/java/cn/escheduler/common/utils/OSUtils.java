@@ -238,12 +238,7 @@ public class OSUtils {
    */
   public static String getHost(){
     try {
-      String hostIP = System.getenv("DS_HOST_IP");
-      if (StringUtils.isNotBlank(hostIP)) {
-        return hostIP;
-      } else {
-        return InetAddress.getLocalHost().getHostAddress();
-      }
+      return InetAddress.getLocalHost().getHostAddress();
     } catch (UnknownHostException e) {
       logger.error(e.getMessage(),e);
     }
