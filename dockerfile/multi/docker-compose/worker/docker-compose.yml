@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  dolphinscheduler-worker:
+    container_name: dolphinscheduler-worker
+    image: gary0416/dolphinscheduler-common:1.1.0
+    restart: always
+    network_mode: host
+    environment:
+      ZK_HOST: 192.168.xx.xx
+      ZK_PORT: 2181
+    command: worker
+    ports:
+      - 7788:7788
+    volumes:
+      - ../data/logs:/opt/escheduler/logs
+      - ../../../conf/escheduler/conf:/opt/escheduler/conf:ro
+      - ../../../multi/docker-compose/worker/worker-extra-init.sh:/opt/escheduler/script/worker-extra-init.sh
+      - /usr/hdp/current/spark2-client:/opt/spark2-client:ro
+      - /etc/spark2/2.6.3.0-235/0:/etc/spark2/2.6.3.0-235/0:ro

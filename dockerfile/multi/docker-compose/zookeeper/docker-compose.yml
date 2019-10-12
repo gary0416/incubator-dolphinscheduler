@@ -1,0 +1,22 @@
+version: '3'
+
+networks:
+  dolphinscheduler-zoo1:
+    driver: bridge
+
+services:
+  zoo1:
+    container_name: dolphinscheduler-zoo1
+    image: zookeeper:3.4.14
+    restart: always
+    hostname: zoo1
+    networks:
+      - dolphinscheduler-zoo1
+    ports:
+      - 2181:2181
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=0.0.0.0:2888:3888
+    volumes:
+      - ../data/zoo1/data:/data
+      - ../data/zoo1/datalog:/datalog

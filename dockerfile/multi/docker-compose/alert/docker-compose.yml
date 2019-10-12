@@ -1,0 +1,19 @@
+version: '3'
+
+networks:
+  dolphinscheduler-alert:
+    driver: bridge
+
+services:
+  dolphinscheduler-alert:
+    container_name: dolphinscheduler-alert
+    image: gary0416/dolphinscheduler-common:1.1.0
+    restart: always
+    networks:
+      - dolphinscheduler-alert
+    command: alert
+    ports:
+      - 7789:7789
+    volumes:
+      - ../data/logs:/opt/escheduler/logs
+      - ../../../conf/escheduler/conf:/opt/escheduler/conf:ro

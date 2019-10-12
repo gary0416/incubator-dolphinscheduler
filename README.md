@@ -1,3 +1,140 @@
+# Dolphin Scheduler on Docker
+
+[dockerfiles](https://github.com/gary0416/incubator-dolphinscheduler/tree/test-docker/dockerfile/multi)
+
+## Supported tags and respective Dockerfile links
+[1.1.0](https://github.com/gary0416/incubator-dolphinscheduler/tree/test-docker/dockerfile/multi)
+
+example:
+```
+version: '3'
+
+networks:
+  dolphinscheduler:
+    driver: bridge
+
+services:
+  mysql:
+    container_name: dolphinscheduler-mysql
+    image: mysql:5.7.25
+    restart: always
+    networks:
+      - dolphinscheduler
+    environment:
+      MYSQL_DATABASE: escheduler
+      MYSQL_ROOT_PASSWORD: root@123
+    command: [
+      '--bind-address=0.0.0.0',
+      '--character-set-server=utf8mb4',
+      '--collation-server=utf8mb4_unicode_ci',
+      '--default-time-zone=+8:00'
+    ]
+    ports:
+      - 3306:3306
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+  zoo1:
+    container_name: dolphinscheduler-zoo1
+    image: zookeeper:3.4.14
+    restart: always
+    hostname: zoo1
+    networks:
+      - dolphinscheduler
+    ports:
+      - 2181:2181
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=0.0.0.0:2888:3888
+    volumes:
+      - ./data/zoo1/data:/data
+      - ./data/zoo1/datalog:/datalog
+  dolphinscheduler-ui:
+    container_name: dolphinscheduler-ui
+    image: gary0416/dolphinscheduler-ui:1.1.0
+    restart: always
+    networks:
+      - dolphinscheduler
+    environment:
+      DS_PROXY: 192.168.xx.xx:12345
+    ports:
+      - 8888:8888
+  dolphinscheduler-api:
+    container_name: dolphinscheduler-api
+    image: gary0416/dolphinscheduler-api:1.1.0
+    restart: always
+    networks:
+      - dolphinscheduler
+    depends_on:
+      - mysql
+      - zoo1
+    environment:
+      ZK_HOST: 192.168.xx.xx
+      ZK_PORT: 2181
+      MYSQL_HOST: 192.168.xx.xx
+      MYSQL_PORT: 3306
+      MYSQL_ROOT_PWD: root@123
+      ESZ_DB: escheduler
+    command: api
+    ports:
+      - 12345:12345
+    volumes:
+      - ./data/logs:/opt/escheduler/logs
+      - ../../conf/escheduler/conf:/opt/escheduler/conf:ro
+  dolphinscheduler-master:
+    container_name: dolphinscheduler-master
+    image: gary0416/dolphinscheduler-common:1.1.0
+    restart: always
+    networks:
+      - dolphinscheduler
+    depends_on:
+      - dolphinscheduler-api
+    environment:
+      ZK_HOST: 192.168.xx.xx
+      ZK_PORT: 2181
+    command: master
+    ports:
+      - 5566:5566
+    volumes:
+      - ./data/logs:/opt/escheduler/logs
+      - ../../conf/escheduler/conf:/opt/escheduler/conf:ro
+  dolphinscheduler-worker:
+    container_name: dolphinscheduler-worker
+    image: gary0416/dolphinscheduler-common:1.1.0
+    restart: always
+    network_mode: host
+    depends_on:
+      - dolphinscheduler-api
+    environment:
+      ZK_HOST: 192.168.xx.xx
+      ZK_PORT: 2181
+    command: worker
+    ports:
+      - 7788:7788
+      - 50051:50051
+    volumes:
+      - ./data/logs:/opt/escheduler/logs
+      - ../../conf/escheduler/conf:/opt/escheduler/conf:ro
+      - ../../multi/docker-compose/worker/worker-extra-init.sh:/opt/escheduler/script/worker-extra-init.sh
+      - /usr/hdp/current/spark2-client:/opt/spark2-client:ro
+      - /etc/spark2/2.6.3.0-235/0:/etc/spark2/2.6.3.0-235/0:ro
+  dolphinscheduler-alert:
+    container_name: dolphinscheduler-alert
+    image: gary0416/dolphinscheduler-common:1.1.0
+    restart: always
+    networks:
+      - dolphinscheduler
+    environment:
+      ALERT_SERVER_STARTUP_DELAY: 180
+    command: alert
+    ports:
+      - 7789:7789
+    volumes:
+      - ./data/logs:/opt/escheduler/logs
+      - ../../conf/escheduler/conf:/opt/escheduler/conf:ro
+```
+
+**Rember to modify MySQL config file**
+
 Dolphin Scheduler
 ============
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)

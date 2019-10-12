@@ -1,0 +1,28 @@
+version: '3'
+
+networks:
+  dolphinscheduler-api:
+    driver: bridge
+
+services:
+  dolphinscheduler-api:
+    container_name: dolphinscheduler-api
+    image: gary0416/zhangtb/dolphinscheduler-api:1.1.0
+    restart: always
+    networks:
+      - dolphinscheduler-api
+    environment:
+      ZK_HOST: 192.168.xx.xx
+      ZK_PORT: 2181
+      MYSQL_HOST: 192.168.xx.xx
+      MYSQL_PORT: 3306
+      MYSQL_ROOT_PWD: root@123
+      ESZ_DB: escheduler
+    command: api
+    ports:
+      - 12345:12345
+    volumes:
+      - ../data/logs:/opt/escheduler/logs
+      - ../../../conf/escheduler/conf:/opt/escheduler/conf:ro
+      # for quick testing:
+      - ../../../test-db/escheduler_dml.sql:/opt/escheduler/sql/upgrade/1.1.0_schema/mysql/dolphinscheduler_dml.sql:ro

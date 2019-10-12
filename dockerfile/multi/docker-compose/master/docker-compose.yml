@@ -1,0 +1,22 @@
+version: '3'
+
+networks:
+  dolphinscheduler-master:
+    driver: bridge
+
+services:
+  dolphinscheduler-master:
+    container_name: dolphinscheduler-master
+    image: gary0416/dolphinscheduler-common:1.1.0
+    restart: always
+    networks:
+      - dolphinscheduler-master
+    environment:
+      ZK_HOST: 192.168.xx.xx
+      ZK_PORT: 2181
+    command: master
+    ports:
+      - 5566:5566
+    volumes:
+      - ../data/logs:/opt/escheduler/logs
+      - ../../../conf/escheduler/conf:/opt/escheduler/conf:ro

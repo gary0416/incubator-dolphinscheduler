@@ -1,0 +1,17 @@
+version: '3'
+
+networks:
+  dolphinscheduler-ui:
+    driver: bridge
+
+services:
+  dolphinscheduler-ui:
+    container_name: dolphinscheduler-ui
+    image: gary0416/dolphinscheduler-ui:1.1.0
+    restart: always
+    networks:
+      - dolphinscheduler-ui
+    environment:
+      DS_PROXY: 192.168.xx.xx:12345
+    ports:
+      - 8888:8888
