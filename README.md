@@ -3,7 +3,7 @@
 [dockerfiles](https://github.com/gary0416/incubator-dolphinscheduler/tree/test-docker/dockerfile/multi)
 
 ## Supported tags and respective Dockerfile links
-[1.1.0](https://github.com/gary0416/incubator-dolphinscheduler/tree/test-docker/dockerfile/multi)
+[test-20191011-1831](https://github.com/gary0416/incubator-dolphinscheduler/tree/test-docker/dockerfile/multi)
 
 example:
 ```

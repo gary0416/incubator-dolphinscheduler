@@ -1,5 +1,7 @@
-# docker build -t gary0416/dolphinscheduler-api:1.1.0 .
-FROM gary0416/dolphinscheduler-common:1.1.0
+# docker build -t --build-arg version=1.1.0 gary0416/dolphinscheduler-api:1.1.0 .
+ARG version
+
+FROM gary0416/dolphinscheduler-common:${version}
 
 COPY docker-entrypoint.sh /usr/local/bin/
 
